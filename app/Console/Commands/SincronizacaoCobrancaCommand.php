@@ -34,8 +34,10 @@ class SincronizacaoCobrancaCommand extends Command
      *
      * @return void
      */
-    public function __construct()
-    {
+    public function __construct(
+        private ConsumeSupport $consumeSupport,
+        private SynchronizeTableSupport $synchronizeTableSupport
+    ) {
         parent::__construct();
     }
 
@@ -44,8 +46,23 @@ class SincronizacaoCobrancaCommand extends Command
      *
      * @return mixed
      */
-    public function handle(ConsumeSupport $consumeSupport)
+    public function handle()
     {
-        $consumeSupport->job('app.ms_cobrancas.table.cobrancas.*', CobrancaSincronizarJob::class);
+        $rules = [
+            'uuid' => 'required',
+            'id' => 'required',
+            'cliente_nome' => 'required',
+            'cliente_documento' => 'required',
+            'valor' => 'required',
+            'operacao' => 'nullable',
+            'banco_id' => 'required',
+            'vencimento' => 'required',
+            'numero_banco' => 'required',
+        ];
+
+        $this->consumeSupport->function("table.cobrancas", $rules, 'app.ms_cobrancas.table.cobrancas.*', function ($data) {
+            $data['operacao'] = $data['operacao'] ?? '02';
+            $this->synchronizeTableSupport->sync('cobrancas', 'cobranca_id', $data['id'], $data);
+        });
     }
 }
