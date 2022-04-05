@@ -60,7 +60,7 @@ class SincronizacaoCobrancaCommand extends Command
             'numero_banco' => 'required',
         ];
 
-        $this->consumeSupport->function("table.cobrancas", $rules, 'app.ms_cobrancas.table.cobrancas.*', function ($data) {
+        $this->consumeSupport->function("table.cobrancas", 'app.ms_cobrancas.table.cobrancas.*', $rules, function ($data) {
             $data['operacao'] = $data['operacao'] ?? '02';
             $this->synchronizeTableSupport->sync('cobrancas', 'cobranca_id', $data['id'], $data);
         });
